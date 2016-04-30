@@ -1,0 +1,3 @@
+[submodule "libgif-js"]
+	path = libgif-js
+	url = https://github.com/ProGM/libgif-js

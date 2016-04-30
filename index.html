@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+		<script type="text/javascript" src="./libgif-js/libgif.js"></script>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>Gif2Animation</title>
+		<style>
+		.jsgif {
+			position: absolute;
+			top: -9999px;
+			left: -9999px;
+		}
+		#image_keeper {
+			width: 1px;
+			height: 1px;
+		}
+		#spriteset_data {
+			width:400px;
+			height: 200px;
+		}
+		</style>
+	</head>
+
+	<body>
+		<center>
+			<h1>Upload your gif to make it RPG Maker MV ready!</h1>
+			<form>
+			  <input type='file' id="image_input">
+			</form>
+			<img id="image_keeper" src="#" alt="">
+			<br>
+			<div>
+				<textarea id="spriteset_data"></textarea>
+			</div>
+			<script type="text/javascript">
+				function createDownloadableSprite(name, width, height) {
+					var canvas_container = $(
+'<a href="#" id="downloader" download="' + name + '.png">\
+	<canvas width="' + width + '" height="' + height + '"></canvas>\
+<\/a>'
+					);
+					canvas_container.appendTo('body');
+					var canvas = canvas_container.find('canvas');
+					canvas_container.click(function() {
+						this.download = name + '.png';
+						this.href = canvas[0].toDataURL("image/png").replace(/^data:image\/[^;]/, 'data:application/octet-stream');
+					})
+					return canvas[0].getContext("2d");
+				}
+
+				function loadGifData() {
+					var sup1 = new SuperGif({ gif: document.getElementById('image_keeper') } );
+					sup1.load(function() {
+						var frames = sup1.get_frames(),
+								json_data = [];
+						if (frames[0]) {
+							var width = frames[0].data.width,
+							    height = frames[0].data.height;
+							var number_of_images = parseInt(frames.length / 9) + 1;
+							for (var image_count = 0; image_count < number_of_images; image_count++) {
+								var context = createDownloadableSprite(image_count, width * 3, height * 3);
+								for (var i = 0; i < frames.length; i++) {
+									var x = parseInt(i % 3) * width,
+											y = parseInt(i / 3) * height;
+									context.putImageData(frames[i].data, x, y);
+									var frame_data = {
+										file_name: image_count + ".png",
+										delay: parseInt(frames[i].delay * 60)
+									}
+									json_data.push(frame_data)
+								}
+							}
+						}
+						$('#spriteset_data').val(JSON.stringify(json_data))
+					});
+				}
+				function readURL(input) {
+				    if (input.files && input.files[0]) {
+				        var reader = new FileReader();
+
+				        reader.onload = function (e) {
+				          $('#image_keeper').attr('src', e.target.result);
+					        loadGifData();
+				        }
+
+				        reader.readAsDataURL(input.files[0]);
+				    }
+				}
+
+				$("#image_input").change(function(){
+				    readURL(this);
+				});
+			</script>
+		</center>
+
+	</body>
+</html>
