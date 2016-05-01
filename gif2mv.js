@@ -31,7 +31,7 @@ function loadGifData(file_name) {
               y = parseInt(i / 3) * height;
           context.putImageData(frames[i].data, x, y);
           var frame_data = {
-            file_name: image_name + ".png",
+            file_name: image_name,
             delay: parseInt(frames[i].delay * 60 / 1000.0)
           }
           json_data.push(frame_data)
