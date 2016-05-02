@@ -13,30 +13,43 @@ function createDownloadableSprite(name, width, height) {
   return canvas[0].getContext("2d");
 }
 
+function createSpritesFromFrames(frames, sprite_width, sprite_height, base_file_name) {
+  var width = frames[0].data.width,
+      height = frames[0].data.height,
+      json_data = [],
+      frames_per_sprite = sprite_width * sprite_height,
+      number_of_sprites = parseInt(frames.length / frames_per_sprite) + 1;
+
+  for (var sprites_count = 0; sprites_count < number_of_sprites; sprites_count++) {
+    var image_name = base_file_name + "_" + sprites_count;
+    var context = createDownloadableSprite(image_name, width * sprite_width, height * sprite_height);
+    var start_index = sprites_count * frames_per_sprite;
+    for (var i = 0; i < frames_per_sprite; i++) {
+      var current_frame = i + start_index;
+      if (current_frame >= frames.length) {
+        break;
+      }
+      var x = parseInt(i % sprite_width) * width,
+          y = parseInt(i / sprite_width) * height;
+      context.putImageData(frames[current_frame].data, x, y);
+      json_data.push({
+        file_name: image_name,
+        delay: parseInt(frames[current_frame].delay * 60 / 100.0)
+      })
+    }
+  }
+
+  return json_data;
+}
+
 function loadGifData(file_name) {
   var sup1 = new SuperGif({ gif: document.getElementById('image_keeper') } );
   sup1.load(function() {
     var frames = sup1.get_frames(),
-        json_data = [];
+        json_data = [],
+        file_name_no_ext = file_name.split('.')[0]
     if (frames[0]) {
-      var width = frames[0].data.width,
-          height = frames[0].data.height,
-          file_name_no_ext = file_name.split('.')[0],
-          number_of_images = parseInt(frames.length / 12) + 1;
-      for (var image_count = 0; image_count < number_of_images; image_count++) {
-        var image_name = "$" + file_name_no_ext + "_" + image_count;
-        var context = createDownloadableSprite(image_name, width * 3, height * 4);
-        for (var i = 0; i < frames.length; i++) {
-          var x = parseInt(i % 3) * width,
-              y = parseInt(i / 3) * height;
-          context.putImageData(frames[i].data, x, y);
-          var frame_data = {
-            file_name: image_name,
-            delay: parseInt(frames[i].delay * 60 / 100.0)
-          }
-          json_data.push(frame_data)
-        }
-      }
+      json_data = createSpritesFromFrames(frames, 3, 4, "$" + file_name_no_ext);
     }
     var final_obj = {};
     final_obj[file_name_no_ext] = json_data;
